@@ -65,9 +65,9 @@ this MVP.
 
 ## Measured Kaggle result
 
-On a Kaggle Tesla P100, the validated 1024 × 1024 run measured 204.726 ms for CPU,
-200.821 ms for OpenMP, and 11.548 ms for CUDA. All correctness checks passed, and
-CUDA was 17.729× faster than CPU with allocation and host/device transfers included.
+On a Kaggle Tesla P100, the validated 1024 × 1024 run measured 202.259 ms for CPU,
+202.252 ms for OpenMP, and 11.209 ms for CUDA. All correctness checks passed, and
+CUDA was 18.044× faster than CPU with allocation and host/device transfers included.
 At 256 × 256, CPU was faster because the included CUDA overhead dominated the small
 workload. See the full [measured report](reports/kaggle_p100_results.md) for the raw
 values, calculation policy, and limitations.

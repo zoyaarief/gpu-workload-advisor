@@ -16,7 +16,7 @@ Environment reported by the benchmark:
 | Matrix size | CPU (ms) | OpenMP (ms) | CUDA (ms) | Fastest | All correct |
 |---:|---:|---:|---:|---|---|
 | 256 × 256 | 2.884 | 3.984 | 95.786 | CPU | Yes |
-| 1024 × 1024 | 204.726 | 200.821 | 11.548 | CUDA | Yes |
+| 1024 × 1024 | 202.259 | 202.252 | 11.209 | CUDA | Yes |
 
 ## Calculated speedups
 
@@ -28,15 +28,15 @@ For 256 × 256:
 
 For 1024 × 1024:
 
-- OpenMP versus CPU: 1.019×
-- CUDA versus CPU: 17.729×
-- CUDA versus OpenMP: 17.391×
+- OpenMP versus CPU: 1.000×
+- CUDA versus CPU: 18.044×
+- CUDA versus OpenMP: 18.044×
 
 ## Evidence-backed recommendation
 
 For this implementation and Kaggle machine, CPU was the best choice at 256 × 256,
 where CUDA setup, allocation, and transfer overhead dominated the small workload. At
-1024 × 1024, CUDA was the best measured choice and completed the operation 17.729×
+1024 × 1024, CUDA was the best measured choice and completed the operation 18.044×
 faster than the sequential CPU result even with allocation and transfers included.
 
 This is consistent with a larger workload providing enough parallel arithmetic to
