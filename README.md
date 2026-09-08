@@ -79,9 +79,8 @@ process and the LLM, so they run without CUDA hardware or an API key.
 Use the ready-made
 [Kaggle GPU notebook](notebooks/kaggle_gpu_demo.ipynb). Create a Kaggle notebook,
 select **Settings → Accelerator → GPU**, enable **Internet**, upload this notebook,
-replace its `REPOSITORY_URL`, and run the cells in order. It builds and runs the
-complete project on Kaggle's NVIDIA machine while your normal development and tests
-stay local.
+and run the cells in order. It clones this repository and runs the complete project
+on Kaggle's NVIDIA machine while your normal development and tests stay local.
 
 Add `OPENAI_API_KEY` through Kaggle's **Add-ons → Secrets** interface. Do not paste a
 key into a code cell. The notebook saves the final report as
