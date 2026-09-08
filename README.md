@@ -37,7 +37,7 @@ app/
   schemas.py    Request, benchmark, analysis, and response contracts
   benchmark.py  Safe native-process wrapper
   analyzer.py   Deterministic speedup and correctness analysis
-  agent.py      One-tool OpenAI Responses API loop
+  agent.py      One-tool Groq Responses API loop
   report.py     Reproducible Markdown report
 native/
   matrix_benchmark.cu  CPU, OpenMP, CUDA, timing, and correctness
@@ -78,7 +78,7 @@ values, calculation policy, and limitations.
 - CMake 3.24 or newer
 - A C++ compiler with OpenMP
 - NVIDIA CUDA toolkit and a CUDA-capable GPU
-- An OpenAI API key for `/advise` only
+- A free Groq API key for `/advise` only
 
 The `/benchmark` endpoint does not call an LLM. The automated tests mock both the GPU
 process and the LLM, so they run without CUDA hardware or an API key.
@@ -91,9 +91,10 @@ select **Settings → Accelerator → GPU**, enable **Internet**, upload this no
 and run the cells in order. It clones this repository and runs the complete project
 on Kaggle's NVIDIA machine while your normal development and tests stay local.
 
-Add `OPENAI_API_KEY` through Kaggle's **Add-ons → Secrets** interface. Do not paste a
-key into a code cell. The notebook saves the final report as
-`/kaggle/working/gpu_workload_report.md` so it can be downloaded from the Output pane.
+Add `GROQ_API_KEY` through Kaggle's **Add-ons → Secrets** interface. Do not paste a
+key into a code cell. Groq's free plan is sufficient for this demo. The notebook
+saves the final report as `/kaggle/working/gpu_workload_report.md` so it can be
+downloaded from the Output pane.
 
 ## 1. Build the native benchmark
 
@@ -124,13 +125,14 @@ Export the values from `.env` in your shell. At minimum, set the key before usin
 agent endpoint:
 
 ```bash
-export OPENAI_API_KEY="your-key"
-export OPENAI_MODEL="gpt-5.4-mini"
+export GROQ_API_KEY="your-key"
+export GROQ_MODEL="openai/gpt-oss-20b"
 ```
 
-The agent uses the OpenAI Responses API with one strict custom function. The API can
-call custom application code through function tools as described in the
-[official OpenAI Responses API documentation](https://developers.openai.com/api/reference/cli/resources/responses/methods/create).
+The agent uses Groq's OpenAI-compatible Responses API with one strict custom
+function. The configured model selects the approved tool, while Python validates
+and executes it locally. See the official
+[Groq Responses API documentation](https://console.groq.com/docs/responses-api).
 
 ## 3. Start the service
 
@@ -187,8 +189,8 @@ math, correctness gating, tool-call restrictions, API responses, and report word
 docker build -t gpu-workload-advisor .
 docker run --rm --gpus all \
   -p 8000:8000 \
-  -e OPENAI_API_KEY \
-  -e OPENAI_MODEL=gpt-5.4-mini \
+  -e GROQ_API_KEY \
+  -e GROQ_MODEL=openai/gpt-oss-20b \
   gpu-workload-advisor
 ```
 
@@ -198,8 +200,8 @@ Docker still requires a compatible host NVIDIA driver and NVIDIA Container Toolk
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | none | Required for `/advise` |
-| `OPENAI_MODEL` | `gpt-5.4-mini` | Tool-capable explanation model |
+| `GROQ_API_KEY` | none | Required for `/advise` |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` | Free-tier, tool-capable model |
 | `BENCHMARK_EXECUTABLE` | `./build/benchmark_runner` | Fixed approved executable |
 | `MAX_MATRIX_SIZE` | `2048` | Python-side safety limit |
 | `BENCHMARK_TIMEOUT_SECONDS` | `120` | Native process timeout |
@@ -220,7 +222,7 @@ means it was slower. The same rule applies to `openmp_vs_cpu` and
 
 - `422`: invalid size, ambiguous/unsupported natural-language request, or unapproved
   tool arguments
-- `503`: native executable not built or `OPENAI_API_KEY` missing
+- `503`: native executable not built or `GROQ_API_KEY` missing
 - `502`: native benchmark failure, timeout, malformed output, or LLM service failure
 
 Start with a small size such as `256`, then try `512` and `1024`. CPU multiplication

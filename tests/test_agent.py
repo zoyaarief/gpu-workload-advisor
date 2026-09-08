@@ -5,7 +5,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.agent import GpuAdvisor, RequestUnderstandingError
+from app.agent import (
+    GROQ_BASE_URL,
+    AgentConfigurationError,
+    GpuAdvisor,
+    RequestUnderstandingError,
+)
 from app.config import Settings
 
 
@@ -38,7 +43,7 @@ def settings() -> Settings:
     return Settings(
         max_matrix_size=2048,
         benchmark_timeout_seconds=5,
-        openai_model="test-model",
+        groq_model="test-model",
     )
 
 
@@ -73,7 +78,31 @@ def test_agent_executes_the_only_approved_tool_once(sample_result) -> None:
     assert "120.000" in response.report
     assert len(client.responses.calls) == 2
     assert client.responses.calls[0]["parallel_tool_calls"] is False
+    assert "store" not in client.responses.calls[0]
+    assert "store" not in client.responses.calls[1]
     assert "tools" not in client.responses.calls[1]
+
+
+def test_agent_configures_the_groq_responses_client(monkeypatch, sample_result) -> None:
+    captured = {}
+
+    def fake_openai(**kwargs):
+        captured.update(kwargs)
+        return FakeClient([])
+
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    monkeypatch.setattr("app.agent.OpenAI", fake_openai)
+
+    GpuAdvisor(FakeRunner(sample_result), settings())
+
+    assert captured == {"api_key": "test-key", "base_url": GROQ_BASE_URL}
+
+
+def test_agent_requires_a_groq_api_key(monkeypatch, sample_result) -> None:
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+
+    with pytest.raises(AgentConfigurationError, match="GROQ_API_KEY"):
+        GpuAdvisor(FakeRunner(sample_result), settings())
 
 
 def test_agent_does_not_guess_a_missing_size(sample_result) -> None:

@@ -23,7 +23,7 @@ def make_runner(tmp_path, maximum: int = 2048) -> BenchmarkRunner:
             benchmark_executable=executable,
             max_matrix_size=maximum,
             benchmark_timeout_seconds=5,
-            openai_model="test-model",
+            groq_model="test-model",
         )
     )
 
@@ -77,7 +77,7 @@ def test_runner_reports_missing_executable(tmp_path) -> None:
             benchmark_executable=tmp_path / "missing",
             max_matrix_size=2048,
             benchmark_timeout_seconds=5,
-            openai_model="test-model",
+            groq_model="test-model",
         )
     )
 

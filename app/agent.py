@@ -15,6 +15,7 @@ from app.schemas import AdviceResponse
 
 
 TOOL_NAME = "run_matrix_benchmark"
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
 AGENT_INSTRUCTIONS = """You are a narrow GPU matrix-multiplication advisor.
 You have exactly one approved tool: run_matrix_benchmark.
@@ -62,23 +63,23 @@ class GpuAdvisor:
         if client is not None:
             self._client = client
         else:
-            if not os.getenv("OPENAI_API_KEY"):
+            api_key = os.getenv("GROQ_API_KEY")
+            if not api_key:
                 raise AgentConfigurationError(
-                    "OPENAI_API_KEY is required for the /advise endpoint"
+                    "GROQ_API_KEY is required for the /advise endpoint"
                 )
-            self._client = OpenAI()
+            self._client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL)
 
     def advise(self, prompt: str) -> AdviceResponse:
         initial_input: list[Any] = [{"role": "user", "content": prompt}]
         try:
             first_response = self._client.responses.create(
-                model=self._settings.openai_model,
+                model=self._settings.groq_model,
                 instructions=AGENT_INSTRUCTIONS,
                 input=initial_input,
                 tools=[self._tool_definition()],
                 tool_choice="auto",
                 parallel_tool_calls=False,
-                store=False,
             )
         except Exception as error:
             raise LLMServiceError("the LLM request failed") from error
@@ -121,10 +122,9 @@ class GpuAdvisor:
         ]
         try:
             final_response = self._client.responses.create(
-                model=self._settings.openai_model,
+                model=self._settings.groq_model,
                 instructions=EXPLANATION_INSTRUCTIONS,
                 input=follow_up_input,
-                store=False,
             )
         except Exception as error:
             raise LLMServiceError("the LLM explanation request failed") from error
