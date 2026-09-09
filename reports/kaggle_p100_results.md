@@ -1,6 +1,6 @@
 # Kaggle Tesla P100 Benchmark Results
 
-Run date: 2026-09-08
+Final run date: 2026-09-09
 
 Environment reported by the benchmark:
 
@@ -16,7 +16,7 @@ Environment reported by the benchmark:
 | Matrix size | CPU (ms) | OpenMP (ms) | CUDA (ms) | Fastest | All correct |
 |---:|---:|---:|---:|---|---|
 | 256 × 256 | 2.884 | 3.984 | 95.786 | CPU | Yes |
-| 1024 × 1024 | 202.259 | 202.252 | 11.209 | CUDA | Yes |
+| 1024 × 1024 | 225.588 | 224.435 | 11.944 | CUDA | Yes |
 
 ## Calculated speedups
 
@@ -28,15 +28,15 @@ For 256 × 256:
 
 For 1024 × 1024:
 
-- OpenMP versus CPU: 1.000×
-- CUDA versus CPU: 18.044×
-- CUDA versus OpenMP: 18.044×
+- OpenMP versus CPU: 1.005×
+- CUDA versus CPU: 18.887×
+- CUDA versus OpenMP: 18.791×
 
 ## Evidence-backed recommendation
 
 For this implementation and Kaggle machine, CPU was the best choice at 256 × 256,
 where CUDA setup, allocation, and transfer overhead dominated the small workload. At
-1024 × 1024, CUDA was the best measured choice and completed the operation 18.044×
+1024 × 1024, CUDA was the best measured choice and completed the operation 18.887×
 faster than the sequential CPU result even with allocation and transfers included.
 
 This is consistent with a larger workload providing enough parallel arithmetic to

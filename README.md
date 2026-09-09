@@ -65,9 +65,10 @@ this MVP.
 
 ## Measured Kaggle result
 
-On a Kaggle Tesla P100, the validated 1024 × 1024 run measured 202.259 ms for CPU,
-202.252 ms for OpenMP, and 11.209 ms for CUDA. All correctness checks passed, and
-CUDA was 18.044× faster than CPU with allocation and host/device transfers included.
+On a Kaggle Tesla P100, the final validated 1024 × 1024 agent run measured 225.588 ms
+for CPU, 224.435 ms for OpenMP, and 11.944 ms for CUDA. All correctness checks
+passed, and CUDA was 18.887× faster than CPU with allocation and host/device
+transfers included.
 At 256 × 256, CPU was faster because the included CUDA overhead dominated the small
 workload. See the full [measured report](reports/kaggle_p100_results.md) for the raw
 values, calculation policy, and limitations.
@@ -95,6 +96,9 @@ Add `GROQ_API_KEY` through Kaggle's **Add-ons → Secrets** interface. Do not pa
 key into a code cell. Groq's free plan is sufficient for this demo. The notebook
 saves the final report as `/kaggle/working/gpu_workload_report.md` so it can be
 downloaded from the Output pane.
+
+The final saved demonstration is available as
+[Kaggle Version 2](https://www.kaggle.com/code/zoyaarief/gpu-workload-advisor-demo).
 
 ## 1. Build the native benchmark
 
