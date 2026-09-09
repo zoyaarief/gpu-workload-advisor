@@ -28,12 +28,12 @@ the tool; briefly say what is missing. Call the tool at most once.
 EXPLANATION_INSTRUCTIONS = """Explain the benchmark evidence supplied by the tool.
 Use only the provided measurements and calculated speedups. State which measured
 implementation was fastest, whether all correctness checks passed, whether CUDA
-transfer/allocation time was included, and why the result may have occurred. Treat
-performance reasons as cautious interpretation rather than measured fact. If the
+transfer/allocation time was included, and one cautious reason the result may have
+occurred. Correctness means the results passed a floating-point tolerance check, not
+that they were identical. OpenMP thread count does not establish the CPU core count.
+Do not infer CPU specifications, memory access patterns, kernel optimizations, or
+hardware mechanisms that are not stated in the supplied benchmark_context. If the
 comparison is incomplete or correctness failed, do not recommend an implementation.
-The CUDA implementation is a simple educational kernel, not cuBLAS and not a tiled
-or otherwise highly optimized GEMM kernel. Do not claim that it uses tiling, shared
-memory, register reuse, or any library that is not stated in the supplied evidence.
 State that one run does not prove performance for other sizes or hardware. Be concise.
 """
 
@@ -111,6 +111,19 @@ class GpuAdvisor:
             {
                 "benchmark": benchmark.model_dump(mode="json"),
                 "analysis": analysis.model_dump(mode="json"),
+                "benchmark_context": {
+                    "cuda_kernel": (
+                        "simple educational element-per-output kernel; no cuBLAS, "
+                        "tiling, or shared-memory optimization"
+                    ),
+                    "cpu_implementation": (
+                        "row-oriented loop; CPU model and core count are not measured"
+                    ),
+                    "correctness_check": (
+                        "comparison with the sequential CPU result using a "
+                        "floating-point tolerance"
+                    ),
+                },
             }
         )
 

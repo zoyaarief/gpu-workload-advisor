@@ -82,6 +82,14 @@ def test_agent_executes_the_only_approved_tool_once(sample_result) -> None:
     assert "store" not in client.responses.calls[0]
     assert "store" not in client.responses.calls[1]
     assert "tools" not in client.responses.calls[1]
+    tool_output = json.loads(client.responses.calls[1]["input"][-1]["output"])
+    assert "no cuBLAS" in tool_output["benchmark_context"]["cuda_kernel"]
+    assert "core count are not measured" in tool_output["benchmark_context"][
+        "cpu_implementation"
+    ]
+    assert "floating-point tolerance" in tool_output["benchmark_context"][
+        "correctness_check"
+    ]
 
 
 def test_agent_configures_the_groq_responses_client(monkeypatch, sample_result) -> None:
@@ -107,9 +115,9 @@ def test_agent_requires_a_groq_api_key(monkeypatch, sample_result) -> None:
 
 
 def test_explanation_prompt_describes_the_educational_cuda_kernel() -> None:
-    assert "simple educational kernel" in EXPLANATION_INSTRUCTIONS
-    assert "not cuBLAS" in EXPLANATION_INSTRUCTIONS
-    assert "not a tiled" in EXPLANATION_INSTRUCTIONS
+    assert "they were identical" in EXPLANATION_INSTRUCTIONS
+    assert "does not establish the CPU core count" in EXPLANATION_INSTRUCTIONS
+    assert "Do not infer CPU specifications" in EXPLANATION_INSTRUCTIONS
 
 
 def test_agent_does_not_guess_a_missing_size(sample_result) -> None:
