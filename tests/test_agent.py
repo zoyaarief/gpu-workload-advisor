@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.agent import (
+    EXPLANATION_INSTRUCTIONS,
     GROQ_BASE_URL,
     AgentConfigurationError,
     GpuAdvisor,
@@ -103,6 +104,12 @@ def test_agent_requires_a_groq_api_key(monkeypatch, sample_result) -> None:
 
     with pytest.raises(AgentConfigurationError, match="GROQ_API_KEY"):
         GpuAdvisor(FakeRunner(sample_result), settings())
+
+
+def test_explanation_prompt_describes_the_educational_cuda_kernel() -> None:
+    assert "simple educational kernel" in EXPLANATION_INSTRUCTIONS
+    assert "not cuBLAS" in EXPLANATION_INSTRUCTIONS
+    assert "not a tiled" in EXPLANATION_INSTRUCTIONS
 
 
 def test_agent_does_not_guess_a_missing_size(sample_result) -> None:

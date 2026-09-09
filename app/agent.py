@@ -31,6 +31,9 @@ implementation was fastest, whether all correctness checks passed, whether CUDA
 transfer/allocation time was included, and why the result may have occurred. Treat
 performance reasons as cautious interpretation rather than measured fact. If the
 comparison is incomplete or correctness failed, do not recommend an implementation.
+The CUDA implementation is a simple educational kernel, not cuBLAS and not a tiled
+or otherwise highly optimized GEMM kernel. Do not claim that it uses tiling, shared
+memory, register reuse, or any library that is not stated in the supplied evidence.
 State that one run does not prove performance for other sizes or hardware. Be concise.
 """
 
