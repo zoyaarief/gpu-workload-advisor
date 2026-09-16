@@ -7,10 +7,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
-        cmake \
         python3 \
         python3-pip \
     && rm -rf /var/lib/apt/lists/*
+
+# Ubuntu 22.04 packages CMake 3.22, but native/CMakeLists.txt requires 3.24+.
+RUN python3 -m pip install --no-cache-dir "cmake>=3.24,<4"
 
 WORKDIR /app
 

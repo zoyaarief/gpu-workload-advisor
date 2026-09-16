@@ -2,6 +2,12 @@
 
 Final run date: 2026-09-09
 
+> **Correction (2026-09-16):** the OpenMP column in this run is not a parallel
+> measurement. The CMake build did not pass `-fopenmp` to `matrix_benchmark.cu`
+> (a CUDA source), so the OpenMP pragmas were ignored, and "OpenMP maximum threads"
+> reported what the runtime could use, not what ran. The build is fixed and now
+> reports the real thread count. The CPU and CUDA columns are unaffected.
+
 Environment reported by the benchmark:
 
 - GPU: Tesla P100-PCIE-16GB
