@@ -7,6 +7,12 @@ Final run date: 2026-09-09
 > (a CUDA source), so the OpenMP pragmas were ignored, and "OpenMP maximum threads"
 > reported what the runtime could use, not what ran. The build is fixed and now
 > reports the real thread count. The CPU and CUDA columns are unaffected.
+>
+> **Note (2026-09-16):** the 256 × 256 CUDA time below comes from a single trial in
+> the first CUDA process, so it likely includes one-time first-launch cost such as
+> JIT compilation, not just allocation and transfers. A later run with repeated
+> trials on a Tesla T4 was faster on CUDA than on CPU even at 256 × 256. See
+> [the T4 report](kaggle_t4x2_results.md).
 
 Environment reported by the benchmark:
 
