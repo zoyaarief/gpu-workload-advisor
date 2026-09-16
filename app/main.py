@@ -23,8 +23,11 @@ from app.schemas import AdviceRequest, AdviceResponse, BenchmarkRequest, Benchma
 
 app = FastAPI(
     title="GPU Workload Advisor",
-    version="0.1.0",
-    description="Evidence-backed CPU, OpenMP, and CUDA matrix benchmark advice.",
+    version="0.2.0",
+    description=(
+        "Evidence-backed CPU, OpenMP, single-GPU, and multi-GPU CUDA matrix "
+        "benchmark advice with NVML telemetry."
+    ),
 )
 
 settings = Settings()

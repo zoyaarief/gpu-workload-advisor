@@ -90,6 +90,11 @@ def test_agent_executes_the_only_approved_tool_once(sample_result) -> None:
     assert "floating-point tolerance" in tool_output["benchmark_context"][
         "correctness_check"
     ]
+    assert tool_output["benchmark_context"]["latency_statistic"] == (
+        "median of 3 trials per implementation"
+    )
+    assert "no peer-to-peer" in tool_output["benchmark_context"]["multi_gpu"]
+    assert tool_output["analysis"]["speedups"]["cuda_multi_gpu_vs_cuda"] == 1.667
 
 
 def test_agent_configures_the_groq_responses_client(monkeypatch, sample_result) -> None:

@@ -40,7 +40,13 @@ def test_benchmark_endpoint_returns_native_measurements(sample_result) -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert response.json()["measurements"][2]["implementation"] == "cuda"
+    assert [item["implementation"] for item in response.json()["measurements"]] == [
+        "cpu",
+        "openmp",
+        "cuda",
+        "cuda_multi_gpu",
+    ]
+    assert response.json()["measurements"][3]["trial_latencies_ms"] == [6.0, 6.2, 5.8]
 
 
 def test_benchmark_endpoint_rejects_extra_input(sample_result) -> None:
@@ -77,5 +83,5 @@ def test_advice_endpoint_returns_report(sample_result) -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert response.json()["analysis"]["fastest_implementation"] == "cuda"
+    assert response.json()["analysis"]["fastest_implementation"] == "cuda_multi_gpu"
     assert response.json()["report"].startswith("# GPU Workload Advisor Report")
