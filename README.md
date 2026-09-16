@@ -70,6 +70,9 @@ tests/          GPU-independent unit and API tests
   floating-point tolerance on every trial.
 - The benchmark reports the thread count of a real OpenMP parallel region. If the
   build silently drops OpenMP, it reports 1 and the report flags it.
+- The first CUDA trial in a fresh process can include one-time costs, such as JIT
+  compiling the kernel for a GPU the build did not target. Medians keep this out of
+  the reported latency, and the min–max column still shows it.
 - If CUDA is unavailable or any correctness check fails, the analyzer refuses to
   make a complete CPU/OpenMP/CUDA recommendation.
 
@@ -103,21 +106,42 @@ tests/          GPU-independent unit and API tests
 These choices make overhead visible and the report honest. They do not measure the
 best possible GEMM performance; a cuBLAS comparison is outside this MVP.
 
-## Measured Kaggle result
+## Measured Kaggle results
 
-On a Kaggle Tesla P100, the final validated 1024 × 1024 agent run measured 225.588 ms
-for CPU and 11.944 ms for CUDA. All correctness checks passed, and CUDA was 18.887×
-faster than CPU with allocation and host/device transfers included.
-At 256 × 256, CPU was faster because the included CUDA overhead dominated the small
-workload. See the full [measured report](reports/kaggle_p100_results.md) for the raw
-values, calculation policy, and limitations.
+### 2 × Tesla T4 (2026-09-16)
 
-> **Correction:** that run's OpenMP figure (224.435 ms, 1.005× CPU) was not parallel.
-> `OpenMP::OpenMP_CXX` adds `-fopenmp` only to C++ sources, and
-> `matrix_benchmark.cu` is compiled as CUDA, so the OpenMP pragmas were silently
-> ignored. The build now forwards the flag to the host compiler, and the benchmark
-> reports the real OpenMP thread count so this cannot recur unnoticed. The OpenMP and
-> multi-GPU numbers need a new Kaggle run (GPU T4 x2).
+At 2048 × 2048 with 5 trials per implementation (medians), all correctness checks
+passed:
+
+| Implementation | Median (ms) | Speedup vs CPU |
+|---|---:|---:|
+| CPU | 1661.241 | 1.0× |
+| OpenMP (4 threads) | 815.333 | 2.0× |
+| CUDA, 1 GPU | 68.244 | 24.3× |
+| CUDA, 2 GPUs | 35.124 | 47.3× |
+
+Two GPUs were 1.943× faster than one, a scaling efficiency of 0.971. Across the size
+sweep, efficiency rose from 0.394 at 256 to 0.622 at 512, 0.940 at 1024, and 0.971 at
+2048. NVML showed only GPU 0 working during the single-GPU run and both GPUs drawing
+power during the two-GPU run. Per-trial values, telemetry, and caveats are in the
+[T4 report](reports/kaggle_t4x2_results.md).
+
+### Tesla P100 (2026-09-09)
+
+A 1024 × 1024 run measured 225.588 ms for CPU and 11.944 ms for CUDA: 18.887× faster,
+with allocation and host/device transfers included. See the
+[P100 report](reports/kaggle_p100_results.md).
+
+> **Corrections to the P100 run:**
+> - **OpenMP was not parallel.** Its figure (224.435 ms, 1.005× CPU) was sequential:
+>   `OpenMP::OpenMP_CXX` adds `-fopenmp` only to C++ sources, and
+>   `matrix_benchmark.cu` is compiled as CUDA, so the OpenMP pragmas were silently
+>   ignored. The build now forwards the flag, and the T4 run confirms 4 threads and a
+>   2.0× speedup.
+> - **The 256 × 256 CUDA time was probably mostly one-time cost.** It was a single
+>   95.8 ms trial, which likely included first-launch cost such as JIT compilation,
+>   not just allocation and transfers. With repeated trials on a T4, CUDA beat the CPU
+>   even at 256 × 256.
 
 ## Prerequisites
 
