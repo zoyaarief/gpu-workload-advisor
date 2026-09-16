@@ -2,12 +2,18 @@ from __future__ import annotations
 
 import os
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 from pydantic import ValidationError
 
 from app.config import Settings
 from app.schemas import BenchmarkResult
+from app.telemetry import NvmlTelemetrySampler, TelemetrySampler
+
+
+# Must match kMaxRepeats in native/matrix_benchmark.cu.
+MAX_REPEATS = 50
 
 
 class BenchmarkError(Exception):
@@ -27,12 +33,22 @@ class BenchmarkExecutionError(BenchmarkError):
 
 
 class BenchmarkRunner:
-    """Runs one fixed executable with one validated integer argument."""
+    """Runs one fixed executable with a validated size and a configured trial count."""
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        sampler_factory: Callable[[], TelemetrySampler] | None = None,
+    ) -> None:
+        if not 1 <= settings.benchmark_repeats <= MAX_REPEATS:
+            raise ValueError(f"benchmark_repeats must be between 1 and {MAX_REPEATS}")
         self._executable = settings.benchmark_executable
         self._max_matrix_size = settings.max_matrix_size
         self._timeout_seconds = settings.benchmark_timeout_seconds
+        self._repeats = settings.benchmark_repeats
+        self._sampler_factory = sampler_factory or (
+            lambda: NvmlTelemetrySampler(settings.telemetry_interval_ms)
+        )
 
     @property
     def executable(self) -> Path:
@@ -42,17 +58,23 @@ class BenchmarkRunner:
         self._validate_size(matrix_size)
         self._validate_executable()
 
-        command = [str(self._executable), str(matrix_size)]
+        command = [str(self._executable), str(matrix_size), str(self._repeats)]
+        # NVML numbers GPUs in PCI bus order; make CUDA use the same order so
+        # telemetry for GPU N describes the device the benchmark calls GPU N.
+        environment = {**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"}
+        sampler = self._sampler_factory()
         try:
-            completed = subprocess.run(
-                command,
-                cwd=self._executable.parent,
-                capture_output=True,
-                text=True,
-                timeout=self._timeout_seconds,
-                check=False,
-                shell=False,
-            )
+            with sampler:
+                completed = subprocess.run(
+                    command,
+                    cwd=self._executable.parent,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                    timeout=self._timeout_seconds,
+                    check=False,
+                    shell=False,
+                )
         except subprocess.TimeoutExpired as error:
             raise BenchmarkExecutionError(
                 f"benchmark exceeded the {self._timeout_seconds}-second timeout"
@@ -75,7 +97,13 @@ class BenchmarkRunner:
             raise BenchmarkExecutionError(
                 "benchmark returned results for a different matrix size"
             )
-        return result
+        if result.repeats != self._repeats:
+            raise BenchmarkExecutionError(
+                "benchmark returned a different number of trials than requested"
+            )
+        return result.model_copy(
+            update={"telemetry": sampler.telemetry(result.measurements)}
+        )
 
     def _validate_size(self, matrix_size: int) -> None:
         if isinstance(matrix_size, bool) or not isinstance(matrix_size, int):

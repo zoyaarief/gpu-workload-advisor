@@ -24,6 +24,12 @@ class Settings:
     benchmark_timeout_seconds: int = field(
         default_factory=lambda: int(os.getenv("BENCHMARK_TIMEOUT_SECONDS", "120"))
     )
+    benchmark_repeats: int = field(
+        default_factory=lambda: int(os.getenv("BENCHMARK_REPEATS", "5"))
+    )
+    telemetry_interval_ms: float = field(
+        default_factory=lambda: float(os.getenv("TELEMETRY_INTERVAL_MS", "50"))
+    )
     groq_model: str = field(
         default_factory=lambda: os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
     )

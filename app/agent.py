@@ -34,7 +34,11 @@ that they were identical. OpenMP thread count does not establish the CPU core co
 Do not infer CPU specifications, memory access patterns, kernel optimizations, or
 hardware mechanisms that are not stated in the supplied benchmark_context. If the
 comparison is incomplete or correctness failed, do not recommend an implementation.
-State that one run does not prove performance for other sizes or hardware. Be concise.
+If a multi-GPU measurement is present, report its speedup over one GPU and the
+scaling efficiency exactly as calculated. If telemetry is present, you may cite its
+sampled values, but note that NVML averages utilization and power over time.
+State that these trials do not prove performance for other sizes or hardware.
+Be concise.
 """
 
 
@@ -121,7 +125,20 @@ class GpuAdvisor:
                     ),
                     "correctness_check": (
                         "comparison with the sequential CPU result using a "
-                        "floating-point tolerance"
+                        "floating-point tolerance on every trial"
+                    ),
+                    "latency_statistic": (
+                        f"median of {benchmark.repeats} trials per implementation"
+                    ),
+                    "multi_gpu": (
+                        "rows split evenly across all visible GPUs, one host thread "
+                        "per GPU; each GPU receives the full right-hand matrix; no "
+                        "peer-to-peer, NVLink, or NCCL communication"
+                    ),
+                    "telemetry": (
+                        "NVML samples per GPU aligned to each CUDA phase's "
+                        "wall-clock window; utilization and power are "
+                        "driver-averaged"
                     ),
                 },
             }
@@ -161,8 +178,8 @@ class GpuAdvisor:
             "type": "function",
             "name": TOOL_NAME,
             "description": (
-                "Run the approved sequential CPU, OpenMP, and CUDA square "
-                "matrix-multiplication benchmark."
+                "Run the approved sequential CPU, OpenMP, single-GPU CUDA, and "
+                "multi-GPU CUDA square matrix-multiplication benchmark."
             ),
             "strict": True,
             "parameters": {
